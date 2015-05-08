@@ -1,0 +1,4 @@
+name: merge_conflict_detector
+dependencies:
+  git: any
+  unittest: ">=0.11.0 <0.12.0"
