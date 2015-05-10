@@ -19,7 +19,12 @@ main(List<String> args) async {
   var config = await getConfiguration(args);
   var githubClient = createGitHubClient(auth: new Authentication.withToken(config.authToken));
   githubClient.pullRequests.list(new RepositorySlug(config.accountName, config.repoName)).listen((pr) {
-    print(pr);
+    print("""
+      PR title: ${pr.title}
+      Github Repo User: ${pr.base.user.login}
+      Github Repo: ${pr.base.repo.name}
+      branch name: ${pr.base.ref}
+    """);
   });
 }
 
