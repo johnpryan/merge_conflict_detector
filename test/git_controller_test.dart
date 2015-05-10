@@ -13,8 +13,5 @@ main() {
       var mockController = new MockGitController();
       print(mockController.getPrs());
     });
-    test('more stuff', ()) {
-    	// no-op
-    }
   });
 }
