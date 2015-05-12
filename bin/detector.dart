@@ -82,9 +82,9 @@ Future attemptMerge(PullRequest pr1, PullRequest pr2, String repoPath) async {
   ProcessResult mergeResult = await mergeBranch(pr2, repoPath);
   ProcessResult deleted = await Process.run('git', ['branch', '-D', tempBranchName(pr1)], workingDirectory: repoPath);
   if (mergeResult.exitCode != 0) {
-    print('FAILURE ${remoteBranchName(pr2)} => ${remoteBranchName(pr1)}');
+    print('FAILURE ${simpleName(pr2)} => ${simpleName(pr1)}');
   } else {
-    print('SUCCESS ${remoteBranchName(pr2)} => ${remoteBranchName(pr1)}');
+    print('SUCCESS ${simpleName(pr2)} => ${simpleName(pr1)}');
   }
 }
 
