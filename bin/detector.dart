@@ -62,35 +62,42 @@ Future<String> getAuthToken() async {
 }
 
 detectConflicts(List<PullRequest> pullRequests, String localRepoPath) async {
-//  pullRequests.forEach((PullRequest pr) {
-//    print("""
-//      PR title: ${pr.title}
-//      Github Repo User: ${pr.base.user.login}
-//      Github Repo: ${pr.base.repo.name}
-//      branch name: ${pr.base.ref}
-//    """);
-//  });
-  await attemptMerge(pullRequests[0], pullRequests[1], localRepoPath);
+  for (var i = 0; i < pullRequests.length; i++) {
+    for (var j = 0; j < pullRequests.length; j++) {
+      var pr1 = pullRequests[i];
+      var pr2 = pullRequests[j];
+      if(pr1 != pr2) {
+        await attemptMerge(pr1, pr2, localRepoPath);
+      }
+    }
+  }
 }
 
-attemptMerge(PullRequest pr1, PullRequest pr2, String repoPath) async {
+Future attemptMerge(PullRequest pr1, PullRequest pr2, String repoPath) async {
   await addRemote(pr1, repoPath);
   await addRemote(pr2, repoPath);
   await fetchRemote(pr1, repoPath);
   await fetchRemote(pr2, repoPath);
   await checkoutBranch(pr1, repoPath);
-  await mergeBranch(pr2, repoPath);
-//  print('${pr1.base.user.login}/${pr1.base.ref} <= ${pr2.base.user.login}/${pr2.base.ref}');
+  ProcessResult mergeResult = await mergeBranch(pr2, repoPath);
+  ProcessResult deleted = await Process.run('git', ['branch', '-D', tempBranchName(pr1)], workingDirectory: repoPath);
+  if (mergeResult.exitCode != 0) {
+    print('FAILURE ${remoteBranchName(pr2)} => ${remoteBranchName(pr1)}');
+  } else {
+    print('SUCCESS ${remoteBranchName(pr2)} => ${remoteBranchName(pr1)}');
+  }
 }
 
 Future addRemote(PullRequest pr, String repoPath) async {
   var args = ['remote', 'add', remoteName(pr), remoteUrl(pr)];
   await Process.run('git', args, workingDirectory: repoPath);
 }
+String simpleName(PullRequest pr) => '${pr.base.user.login}/${pr.base.ref}';
 String remoteName(PullRequest pr) => 'merge_conflict_detector/${pr.base.user.login}';
 String remoteUrl(PullRequest pr) => pr.base.repo.cloneUrls.ssh;
 String remoteBranchName(PullRequest pr) => 'remotes/${remoteName(pr)}/${pr.base.ref}';
 String tempBranchName(PullRequest pr) => 'merge_conflict_detector/${pr.base.user.login}/${pr.base.ref}';
+
 
 Future fetchRemote(PullRequest pr, String repoPath) async {
   var args = ['fetch', remoteName(pr)];
@@ -107,9 +114,6 @@ Future checkoutBranch(PullRequest pr, String repoPath) async {
 Future<ProcessResult> mergeBranch(PullRequest pr, String repoPath) async {
   var args = ['merge', '--no-commit', '--no-ff', remoteBranchName(pr)];
   ProcessResult result = await Process.run('git', args, workingDirectory: repoPath);
-  print('merged? ${result.stdout}');
-  print('merge error? ${result.stderr}');
-  print('exit code: ${result.exitCode}');
   await Process.run('git', ['reset', '--hard'], workingDirectory: repoPath);
   await Process.run('git', ['checkout', 'master'], workingDirectory: repoPath);
   return result;
