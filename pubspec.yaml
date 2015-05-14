@@ -1,7 +1,7 @@
 name: merge_conflict_detector
 dependencies:
   args: any
-  git: any
   github: any
+  collection: any
 dev_dependencies:
   unittest: ">=0.11.0 <0.12.0"
