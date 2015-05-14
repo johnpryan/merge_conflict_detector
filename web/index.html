@@ -4,14 +4,14 @@
 <style>
 </style>
 <body>
-<script src="d3.min.js"></script>
+<script src="d3.js"></script>
 <script>
     var width = 960
     var height = 500;
 
     var fill = d3.scale.category20();
 
-    // createa new force layout with a single node
+    // create a new force layout with a single node
     var force = d3.layout.force()
             .size([width, height])
             .nodes([{}])
@@ -26,10 +26,14 @@
             .on("mousemove", mousemove)
             .on("mousedown", mousedown);
 
-    var nodes = force.nodes(),
-            links = force.links(),
-            node = svg.selectAll(".node"),
-            link = svg.selectAll(".link");
+    // returns the current node array
+    var nodes = force.nodes();
+
+    // returns the current link array
+    var links = force.links();
+
+    var node = svg.selectAll(".node");
+    var link = svg.selectAll(".link");
 
     var cursor = svg.append("circle")
             .attr("r", 30)
