@@ -75,6 +75,7 @@ class Pair<T> {
 
 detectConflicts(List<PullRequest> pullRequests, String localRepoPath) async {
   var alreadyTested = new Set<Pair<PullRequest>>();
+  var conflicts = new Set<Pair<PullRequest>>();
   var maxPrs = 100;
   for (var i = 0; i < min(pullRequests.length, maxPrs); i++) {
     for (var j = 0; j < min(pullRequests.length, maxPrs); j++) {
@@ -82,14 +83,18 @@ detectConflicts(List<PullRequest> pullRequests, String localRepoPath) async {
       var pr2 = pullRequests[j];
       var pair = new Pair(pr1,pr2);
       if(pr1 != pr2 && !alreadyTested.contains(pair)) {
-        await attemptMerge(pr1, pr2, localRepoPath);
+        var canMerge = await attemptMerge(pr1, pr2, localRepoPath);
         alreadyTested.add(pair);
+        if (!canMerge) {
+          conflicts.add(pair);
+        }
       }
     }
   }
+  // now we need to generate a graph
 }
 
-Future attemptMerge(PullRequest pr1, PullRequest pr2, String repoPath) async {
+Future<bool> attemptMerge(PullRequest pr1, PullRequest pr2, String repoPath) async {
   await addRemote(pr1, repoPath);
   await addRemote(pr2, repoPath);
   await fetchRemote(pr1, repoPath);
@@ -99,8 +104,10 @@ Future attemptMerge(PullRequest pr1, PullRequest pr2, String repoPath) async {
   ProcessResult deleted = await Process.run('git', ['branch', '-D', tempBranchName(pr1)], workingDirectory: repoPath);
   if (mergeResult.exitCode != 0) {
     print('FAILURE ${simpleName(pr2)} => ${simpleName(pr1)}');
+    return false;
   } else {
     print('SUCCESS ${simpleName(pr2)} => ${simpleName(pr1)}');
+    return true;
   }
 }
 
