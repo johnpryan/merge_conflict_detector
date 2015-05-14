@@ -1,9 +1,9 @@
 import "dart:io";
 import "dart:async";
-import "dart:convert";
+import "dart:math" show min;
 import "package:args/args.dart";
-import "package:git/git.dart";
 import "package:github/server.dart";
+import 'package:collection/equality.dart';
 
 class Configuration {
   String authToken;
@@ -61,13 +61,29 @@ Future<String> getAuthToken() async {
   return authToken;
 }
 
+class Pair<T> {
+  Set<T> _set = new Set<T>();
+  Pair(T a, T b) {
+    _set
+      ..add(a)
+      ..add(b);
+  }
+  bool operator ==(T o) => new SetEquality().equals(_set, o._set);
+  int get hashCode => new SetEquality().hash(_set);
+}
+
+
 detectConflicts(List<PullRequest> pullRequests, String localRepoPath) async {
-  for (var i = 0; i < pullRequests.length; i++) {
-    for (var j = 0; j < pullRequests.length; j++) {
+  var alreadyTested = new Set<Pair<PullRequest>>();
+  var maxPrs = 100;
+  for (var i = 0; i < min(pullRequests.length, maxPrs); i++) {
+    for (var j = 0; j < min(pullRequests.length, maxPrs); j++) {
       var pr1 = pullRequests[i];
       var pr2 = pullRequests[j];
-      if(pr1 != pr2) {
+      var pair = new Pair(pr1,pr2);
+      if(pr1 != pr2 && !alreadyTested.contains(pair)) {
         await attemptMerge(pr1, pr2, localRepoPath);
+        alreadyTested.add(pair);
       }
     }
   }
