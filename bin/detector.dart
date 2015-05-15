@@ -1,5 +1,6 @@
 import "dart:io";
 import "dart:async";
+import "dart:convert";
 import "dart:math" show min;
 import "package:args/args.dart";
 import "package:github/server.dart";
@@ -70,6 +71,8 @@ class Pair<T> {
   }
   bool operator ==(T o) => new SetEquality().equals(_set, o._set);
   int get hashCode => new SetEquality().hash(_set);
+  T get first => _set.elementAt(0);
+  T get second => _set.elementAt(1);
 }
 
 
@@ -91,7 +94,32 @@ detectConflicts(List<PullRequest> pullRequests, String localRepoPath) async {
       }
     }
   }
-  // now we need to generate a graph
+  // generate a adjency list
+  Map<List<String>> aList = {};
+  conflicts.forEach((Pair<PullRequest> pair) {
+    var al = aList as Map<List<String>>;
+    if(!al.containsKey(pair.first.base.ref)) {
+      al[pair.first.base.ref] = [];
+    }
+    (al[pair.first.base.ref] as List).add(pair.second.base.ref);
+
+    if(!al.containsKey(pair.second.base.ref)) {
+      al[pair.second.base.ref] = [];
+    }
+    (al[pair.second.base.ref] as List).add(pair.first.base.ref);
+  });
+
+  // add any prs we didn't include
+  alreadyTested.forEach((Pair<PullRequest> pair) {
+    var al = aList as Map<List<String>>;
+    if(!al.containsKey(pair.first.base.ref)) {
+      al[pair.first.base.ref] = [];
+    }
+    if(!al.containsKey(pair.second.base.ref)) {
+      al[pair.second.base.ref] = [];
+    }
+  });
+  print(JSON.encode(aList));
 }
 
 Future<bool> attemptMerge(PullRequest pr1, PullRequest pr2, String repoPath) async {

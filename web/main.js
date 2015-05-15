@@ -1,7 +1,7 @@
 var width = 960
 var height = 500;
 
-d3.scale.category20();
+var color = d3.scale.category20();
 
 var oReq = new XMLHttpRequest();
 
@@ -42,8 +42,8 @@ function generateData() {
     .size([width, height])
     .nodes(nodeData)
     .links(linkData)
-    .linkDistance(60)
-    .charge(-60)
+    .linkDistance(90)
+    .charge(-300)
     .on("tick", tick);
 
     nodes = force.nodes();
@@ -95,8 +95,8 @@ function tick() {
     node.attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
 
-    text.attr("x", function(d) {return d.x - 8;});
-    text.attr("y", function(d) {return d.y + 20;});
+    text.attr("x", function(d) {return d.x - 0;});
+    text.attr("y", function(d) {return d.y + 22;});
 }
 
 function restart() {
@@ -116,11 +116,12 @@ function restart() {
     // draw any edges that havent been drawn
     node.enter().insert("circle", ".cursor")
         .attr("class", "node")
-        .attr("r", 5)
+        .attr("r", 6)
+        .style("fill", function(d) {return color(nodeData.indexOf(d));})
         .call(force.drag);
 
     text = text.data(nodes);
-    text.enter().insert("text").text(function(d) {return d.name});
+    text.enter().insert("text", ".circle").text(function(d) {return d.name});
 
     // must be called after creation, and after assigning nodes and links
     force.start();

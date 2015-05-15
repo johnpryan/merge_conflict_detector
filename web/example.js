@@ -1,7 +1,7 @@
 var width = 960
 var height = 500;
 
-d3.scale.category20();
+var fill = d3.scale.category20();
 
 // create a new force layout with a single node
 var force = d3.layout.force()
