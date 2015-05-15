@@ -15,16 +15,11 @@ oReq.open("GET", "/graph.json", true);
 oReq.responseType = "text";
 oReq.send();
 
-var adjencyList = {
-    'foo': ['bar', 'baz'],
-    'bar': ['foo'],
-    'baz': ['foo']
-};
+var adjencyList = {};
 
 var adjencyObjects = {};
 var nodeData = [];
 var linkData = [];
-generateData();
 
 function generateData() {
     nodeData = [];
@@ -43,7 +38,19 @@ function generateData() {
             }
         }
     }
+    force = d3.layout.force()
+    .size([width, height])
+    .nodes(nodeData)
+    .links(linkData)
+    .linkDistance(60)
+    .charge(-60)
+    .on("tick", tick);
 
+    nodes = force.nodes();
+    links = force.links();
+    node = svg.selectAll(".node");
+    link = svg.selectAll(".link");
+    text = svg.selectAll(".text");
 }
 
 

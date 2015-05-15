@@ -1,5 +1,6 @@
 {
   "foo": ["bar", "baz"],
   "bar": ["foo"],
-  "baz": ["foo"]
+  "baz": ["foo", "bar"]
 }
+
