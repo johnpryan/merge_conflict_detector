@@ -1,0 +1,17 @@
+rect {
+    fill: none;
+    pointer-events: all;
+}
+
+.node {
+    stroke: #fff
+    stroke-width: 1.5px;
+}
+.link {
+    stroke: #999;
+    stroke-opacity: .6;
+}
+
+text {
+    font: 10px sans-serif;
+}
