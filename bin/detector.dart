@@ -14,7 +14,7 @@ class Configuration {
 }
 
 RepositorySlug makeRepoSlug(Configuration config) =>
-new RepositorySlug(config.originAccountName, config.repoName);
+    new RepositorySlug(config.originAccountName, config.repoName);
 
 /// Given a github repository, finds all open PRs, and attempts to merge
 /// each PR.  If there are any merge conflicts, returns the previous
@@ -65,16 +65,13 @@ Future<String> getAuthToken() async {
 class Pair<T> {
   Set<T> _set = new Set<T>();
   Pair(T a, T b) {
-    _set
-      ..add(a)
-      ..add(b);
+    _set..add(a)..add(b);
   }
   bool operator ==(T o) => new SetEquality().equals(_set, o._set);
   int get hashCode => new SetEquality().hash(_set);
   T get first => _set.elementAt(0);
   T get second => _set.elementAt(1);
 }
-
 
 detectConflicts(List<PullRequest> pullRequests, String localRepoPath) async {
   var alreadyTested = new Set<Pair<PullRequest>>();
@@ -84,8 +81,8 @@ detectConflicts(List<PullRequest> pullRequests, String localRepoPath) async {
     for (var j = 0; j < min(pullRequests.length, maxPrs); j++) {
       var pr1 = pullRequests[i];
       var pr2 = pullRequests[j];
-      var pair = new Pair(pr1,pr2);
-      if(pr1 != pr2 && !alreadyTested.contains(pair)) {
+      var pair = new Pair(pr1, pr2);
+      if (pr1 != pr2 && !alreadyTested.contains(pair)) {
         var canMerge = await attemptMerge(pr1, pr2, localRepoPath);
         alreadyTested.add(pair);
         if (!canMerge) {
@@ -98,12 +95,12 @@ detectConflicts(List<PullRequest> pullRequests, String localRepoPath) async {
   Map<List<String>> aList = {};
   conflicts.forEach((Pair<PullRequest> pair) {
     var al = aList as Map<List<String>>;
-    if(!al.containsKey(pair.first.base.ref)) {
+    if (!al.containsKey(pair.first.base.ref)) {
       al[pair.first.base.ref] = [];
     }
     (al[pair.first.base.ref] as List).add(pair.second.base.ref);
 
-    if(!al.containsKey(pair.second.base.ref)) {
+    if (!al.containsKey(pair.second.base.ref)) {
       al[pair.second.base.ref] = [];
     }
     (al[pair.second.base.ref] as List).add(pair.first.base.ref);
@@ -112,24 +109,26 @@ detectConflicts(List<PullRequest> pullRequests, String localRepoPath) async {
   // add any prs we didn't include
   alreadyTested.forEach((Pair<PullRequest> pair) {
     var al = aList as Map<List<String>>;
-    if(!al.containsKey(pair.first.base.ref)) {
+    if (!al.containsKey(pair.first.base.ref)) {
       al[pair.first.base.ref] = [];
     }
-    if(!al.containsKey(pair.second.base.ref)) {
+    if (!al.containsKey(pair.second.base.ref)) {
       al[pair.second.base.ref] = [];
     }
   });
   print(JSON.encode(aList));
 }
 
-Future<bool> attemptMerge(PullRequest pr1, PullRequest pr2, String repoPath) async {
+Future<bool> attemptMerge(
+    PullRequest pr1, PullRequest pr2, String repoPath) async {
   await addRemote(pr1, repoPath);
   await addRemote(pr2, repoPath);
   await fetchRemote(pr1, repoPath);
   await fetchRemote(pr2, repoPath);
   await checkoutBranch(pr1, repoPath);
   ProcessResult mergeResult = await mergeBranch(pr2, repoPath);
-  await Process.run('git', ['branch', '-D', tempBranchName(pr1)], workingDirectory: repoPath);
+  await Process.run('git', ['branch', '-D', tempBranchName(pr1)],
+      workingDirectory: repoPath);
   if (mergeResult.exitCode != 0) {
     print('FAILURE ${simpleName(pr2)} => ${simpleName(pr1)}');
     return false;
@@ -143,12 +142,15 @@ Future addRemote(PullRequest pr, String repoPath) async {
   var args = ['remote', 'add', remoteName(pr), remoteUrl(pr)];
   await Process.run('git', args, workingDirectory: repoPath);
 }
-String simpleName(PullRequest pr) => '${pr.base.user.login}/${pr.base.ref}';
-String remoteName(PullRequest pr) => 'merge_conflict_detector/${pr.base.user.login}';
-String remoteUrl(PullRequest pr) => pr.base.repo.cloneUrls.ssh;
-String remoteBranchName(PullRequest pr) => 'remotes/${remoteName(pr)}/${pr.base.ref}';
-String tempBranchName(PullRequest pr) => 'merge_conflict_detector/${pr.base.user.login}/${pr.base.ref}';
 
+String simpleName(PullRequest pr) => '${pr.base.user.login}/${pr.base.ref}';
+String remoteName(PullRequest pr) =>
+    'merge_conflict_detector/${pr.base.user.login}';
+String remoteUrl(PullRequest pr) => pr.base.repo.cloneUrls.ssh;
+String remoteBranchName(PullRequest pr) =>
+    'remotes/${remoteName(pr)}/${pr.base.ref}';
+String tempBranchName(PullRequest pr) =>
+    'merge_conflict_detector/${pr.base.user.login}/${pr.base.ref}';
 
 Future fetchRemote(PullRequest pr, String repoPath) async {
   var args = ['fetch', remoteName(pr)];
@@ -164,7 +166,8 @@ Future checkoutBranch(PullRequest pr, String repoPath) async {
 
 Future<ProcessResult> mergeBranch(PullRequest pr, String repoPath) async {
   var args = ['merge', '--no-commit', '--no-ff', remoteBranchName(pr)];
-  ProcessResult result = await Process.run('git', args, workingDirectory: repoPath);
+  ProcessResult result =
+      await Process.run('git', args, workingDirectory: repoPath);
   await Process.run('git', ['reset', '--hard'], workingDirectory: repoPath);
   await Process.run('git', ['checkout', 'master'], workingDirectory: repoPath);
   return result;
