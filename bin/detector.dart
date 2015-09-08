@@ -94,7 +94,7 @@ detectConflicts(List<PullRequest> pullRequests, String localRepoPath) async {
   // generate a adjency list
   Map<List<String>> aList = {};
   conflicts.forEach((Pair<PullRequest> pair) {
-    var al = aList as Map<List<String>>;
+    var al = aList;
     if (!al.containsKey(pair.first.base.ref)) {
       al[pair.first.base.ref] = [];
     }
@@ -108,7 +108,7 @@ detectConflicts(List<PullRequest> pullRequests, String localRepoPath) async {
 
   // add any prs we didn't include
   alreadyTested.forEach((Pair<PullRequest> pair) {
-    var al = aList as Map<List<String>>;
+    var al = aList;
     if (!al.containsKey(pair.first.base.ref)) {
       al[pair.first.base.ref] = [];
     }
