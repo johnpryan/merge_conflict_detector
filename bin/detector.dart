@@ -67,7 +67,7 @@ class Pair<T> {
   Pair(T a, T b) {
     _set..add(a)..add(b);
   }
-  bool operator ==(T o) => new SetEquality().equals(_set, o._set);
+  bool operator ==(Pair<T> o) => new SetEquality().equals(_set, o._set);
   int get hashCode => new SetEquality().hash(_set);
   T get first => _set.elementAt(0);
   T get second => _set.elementAt(1);
@@ -92,7 +92,7 @@ detectConflicts(List<PullRequest> pullRequests, String localRepoPath) async {
     }
   }
   // generate a adjency list
-  Map<List<String>> aList = {};
+  Map<List<String>, List> aList = {};
   conflicts.forEach((Pair<PullRequest> pair) {
     var al = aList;
     if (!al.containsKey(pair.first.base.ref)) {
